@@ -1,5 +1,5 @@
 const DEFAULT_CONFIG = {
-  baseUrl: "",
+  baseUrl: "https://dalil.net",
   loginPath: "/api/v1/auth/login",
   leadsPath: "/api/v1/lead",
   loginField: "email",
@@ -13,9 +13,21 @@ const STORAGE_KEYS = {
 
 chrome.runtime.onInstalled.addListener(async () => {
   const stored = await chrome.storage.local.get(STORAGE_KEYS.config);
-  if (!stored[STORAGE_KEYS.config]) {
-    await chrome.storage.local.set({ [STORAGE_KEYS.config]: DEFAULT_CONFIG });
-  }
+  const current = stored[STORAGE_KEYS.config] || {};
+  const migrated = {
+    ...DEFAULT_CONFIG,
+    ...current,
+    baseUrl: current.baseUrl || DEFAULT_CONFIG.baseUrl,
+    loginPath:
+      !current.loginPath || current.loginPath === "/auth/login"
+        ? DEFAULT_CONFIG.loginPath
+        : current.loginPath,
+    leadsPath:
+      !current.leadsPath || current.leadsPath === "/leads"
+        ? DEFAULT_CONFIG.leadsPath
+        : current.leadsPath,
+  };
+  await chrome.storage.local.set({ [STORAGE_KEYS.config]: migrated });
 });
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {

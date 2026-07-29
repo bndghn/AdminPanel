@@ -136,7 +136,8 @@ function updateLoginLabel() {
 }
 
 function fillSettings() {
-  document.querySelector("#base-url").value = state.config?.baseUrl || "";
+  document.querySelector("#base-url").value =
+    state.config?.baseUrl || "https://dalil.net";
   document.querySelector("#login-path").value =
     state.config?.loginPath || "/api/v1/auth/login";
   document.querySelector("#leads-path").value =

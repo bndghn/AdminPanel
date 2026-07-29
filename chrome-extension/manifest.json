@@ -1,14 +1,14 @@
 {
   "manifest_version": 3,
   "name": "Instagram CRM Lead",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "شماره‌های تماس اینستاگرام را شناسایی و به سرنخ CRM تبدیل می‌کند.",
   "permissions": [
     "storage"
   ],
   "host_permissions": [
-    "https://*/*",
-    "http://*/*"
+    "https://dalil.net/*",
+    "https://*.dalil.net/*"
   ],
   "background": {
     "service_worker": "background.js"
