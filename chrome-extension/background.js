@@ -1,7 +1,7 @@
 const DEFAULT_CONFIG = {
   baseUrl: "",
-  loginPath: "/auth/login",
-  leadsPath: "/leads",
+  loginPath: "/api/v1/auth/login",
+  leadsPath: "/api/v1/lead",
   loginField: "email",
 };
 
@@ -88,6 +88,7 @@ async function login(credentials) {
       [config.loginField]: loginValue,
       password,
     },
+    bodyType: "form",
     skipAuth: true,
   });
 
@@ -115,6 +116,12 @@ async function login(credentials) {
 }
 
 async function logout() {
+  try {
+    const config = await getConfig();
+    await apiRequest("/api/v1/auth/logout", { method: "POST" });
+  } catch {
+    // Local logout must still work if the token is expired or the server is unavailable.
+  }
   await Promise.all([
     chrome.storage.session.remove("crmToken"),
     chrome.storage.local.remove(STORAGE_KEYS.profile),
@@ -123,15 +130,27 @@ async function logout() {
 }
 
 async function createLead(lead) {
-  const payload = validateLead(lead);
+  const localLead = validateLead(lead);
+  const payload = {
+    client_name: localLead.customer_name || localLead.instagram_id,
+    client_email: localLead.customer_email,
+    mobile: localLead.phone,
+    city: localLead.city,
+    company_name: localLead.subject,
+    website: localLead.instagram_url,
+    customer_id: localLead.customer_id,
+    instagram_id: localLead.instagram_id,
+    subject: localLead.subject,
+  };
   const config = await getConfig();
   const response = await apiRequest(config.leadsPath, {
     method: "POST",
     body: payload,
+    bodyType: "form",
   });
 
   const savedLead = {
-    ...payload,
+    ...localLead,
     id: response?.id || response?.data?.id || crypto.randomUUID(),
     created_at:
       response?.created_at ||
@@ -157,7 +176,7 @@ async function getLocalLeads() {
 
 async function syncLeads() {
   const config = await getConfig();
-  const response = await apiRequest(withQuery(config.leadsPath, "mine=1"));
+  const response = await apiRequest(config.leadsPath);
   const remoteLeads = Array.isArray(response)
     ? response
     : response?.data || response?.leads;
@@ -167,11 +186,21 @@ async function syncLeads() {
   }
 
   const { leads: localLeads } = await getLocalLeads();
-  const localIds = new Set(localLeads.map((lead) => String(lead.id)));
-  const merged = [
-    ...localLeads,
-    ...remoteLeads.filter((lead) => !localIds.has(String(lead.id))),
-  ].sort((a, b) => {
+  const remoteById = new Map(
+    remoteLeads.map((lead) => [String(lead.id), lead]),
+  );
+  const merged = localLeads.map((lead) => {
+    const remote = remoteById.get(String(lead.id));
+    if (!remote) return lead;
+    return {
+      ...lead,
+      customer_name: remote.client_name || lead.customer_name,
+      customer_email: remote.client_email || lead.customer_email,
+      subject: remote.company_name || lead.subject,
+      phone: remote.mobile || lead.phone,
+      city: remote.city || lead.city,
+    };
+  }).sort((a, b) => {
     const aDate = new Date(a.created_at || 0).getTime();
     const bDate = new Date(b.created_at || 0).getTime();
     return bDate - aDate;
@@ -185,8 +214,16 @@ async function syncLeads() {
 
 async function apiRequest(path, options = {}) {
   const config = await getConfig();
-  const headers = { Accept: "application/json" };
-  if (options.body) headers["Content-Type"] = "application/json";
+  const headers = {
+    Accept: "application/json",
+    "X-Requested-With": "XMLHttpRequest",
+  };
+  if (options.body) {
+    headers["Content-Type"] =
+      options.bodyType === "form"
+        ? "application/x-www-form-urlencoded;charset=UTF-8"
+        : "application/json";
+  }
 
   if (!options.skipAuth) {
     const { crmToken } = await chrome.storage.session.get("crmToken");
@@ -199,7 +236,11 @@ async function apiRequest(path, options = {}) {
     response = await fetch(`${config.baseUrl}${path}`, {
       method: options.method || "GET",
       headers,
-      body: options.body ? JSON.stringify(options.body) : undefined,
+      body: options.body
+        ? options.bodyType === "form"
+          ? new URLSearchParams(options.body).toString()
+          : JSON.stringify(options.body)
+        : undefined,
     });
   } catch {
     throw new Error("ارتباط با سرور CRM برقرار نشد.");
@@ -235,6 +276,7 @@ async function getConfig() {
 function validateLead(lead) {
   const clean = {
     customer_id: String(lead?.customer_id || "").trim(),
+    customer_email: String(lead?.customer_email || "").trim(),
     instagram_id: String(lead?.instagram_id || "").trim(),
     customer_name: String(lead?.customer_name || "").trim(),
     subject: String(lead?.subject || "").trim(),
@@ -245,6 +287,12 @@ function validateLead(lead) {
   };
 
   if (!clean.phone) throw new Error("شماره تلفن الزامی است.");
+  if (!clean.customer_name && !clean.instagram_id) {
+    throw new Error("نام مشتری یا شناسه اینستاگرام الزامی است.");
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(clean.customer_email)) {
+    throw new Error("ایمیل معتبر مشتری برای ثبت Lead در Worksuite الزامی است.");
+  }
   if (!clean.subject) throw new Error("موضوع سرنخ الزامی است.");
   return clean;
 }
@@ -264,10 +312,6 @@ function validateHttpUrl(value) {
 function normalizePath(value, fallback) {
   const path = String(value || fallback).trim();
   return path.startsWith("/") ? path : `/${path}`;
-}
-
-function withQuery(path, query) {
-  return `${path}${path.includes("?") ? "&" : "?"}${query}`;
 }
 
 function normalizeError(error) {

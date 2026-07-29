@@ -121,14 +121,15 @@
     const fields = [
       ["phone", "شماره تلفن", toEnglishDigits(match.phone), true],
       ["customer_id", "شناسه مشتری", "", false],
+      ["customer_email", "ایمیل مشتری (الزامی CRM)", "", true, "email"],
       ["instagram_id", "شناسه اینستاگرام", defaults.instagramId, false],
       ["customer_name", "نام مشتری", defaults.customerName, false],
       ["subject", "موضوع درخواست", "", true],
       ["city", "شهر مشتری", "", false],
     ];
 
-    for (const [name, label, value, required] of fields) {
-      form.append(createField(name, label, value, required));
+    for (const [name, label, value, required, type] of fields) {
+      form.append(createField(name, label, value, required, type));
     }
 
     const status = document.createElement("p");
@@ -169,11 +170,12 @@
     return { instagramId, customerName };
   }
 
-  function createField(name, labelText, value, required) {
+  function createField(name, labelText, value, required, type = "text") {
     const label = document.createElement("label");
     label.textContent = labelText;
     const input = document.createElement("input");
     input.name = name;
+    input.type = type;
     input.value = value;
     input.required = required;
     input.autocomplete = "off";

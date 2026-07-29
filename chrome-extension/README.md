@@ -16,19 +16,18 @@
 
 ## قرارداد پیش‌فرض API
 
-چون مستندات CRM در این مخزن وجود ندارد، endpointها از رابط افزونه قابل تنظیم
-هستند. قرارداد پیش‌فرض به شکل زیر است:
+پیاده‌سازی بر اساس
+[مستندات Worksuite API](https://documenter.getpostman.com/view/147520/2sA3kPq5NZ)
+انجام شده است. آدرس نصب CRM از رابط افزونه قابل تنظیم است.
 
 ### ورود
 
 ```http
-POST {baseUrl}/auth/login
-Content-Type: application/json
+POST {baseUrl}/api/v1/auth/login
+X-Requested-With: XMLHttpRequest
+Content-Type: application/x-www-form-urlencoded
 
-{
-  "email": "user@example.com",
-  "password": "..."
-}
+email=user%40example.com&password=...
 ```
 
 فیلد ورود را می‌توان از `email` به `username` تغییر داد. افزونه توکن را در یکی
@@ -46,32 +45,47 @@ Content-Type: application/json
 ### ثبت Lead
 
 ```http
-POST {baseUrl}/leads
+POST {baseUrl}/api/v1/lead
 Authorization: Bearer <token>
-Content-Type: application/json
+X-Requested-With: XMLHttpRequest
+Content-Type: application/x-www-form-urlencoded
 
-{
-  "customer_id": "...",
-  "instagram_id": "...",
-  "customer_name": "...",
-  "subject": "...",
-  "city": "...",
-  "phone": "...",
-  "source": "instagram",
-  "instagram_url": "https://www.instagram.com/..."
-}
+client_name=...
+&client_email=...
+&mobile=...
+&city=...
+&company_name=...
+&website=https%3A%2F%2Fwww.instagram.com%2F...
+&customer_id=...
+&instagram_id=...
+&subject=...
 ```
+
+طبق مستندات، `client_name` و `client_email` فیلدهای اصلی ساخت Lead هستند.
+فیلدهای افزونه به فیلدهای استاندارد Worksuite نیز نگاشت می‌شوند:
+
+- نام مشتری ← `client_name`
+- ایمیل مشتری ← `client_email`
+- شماره تلفن ← `mobile`
+- شهر ← `city`
+- موضوع درخواست ← `company_name`
+- آدرس صفحه اینستاگرام ← `website`
+
+`customer_id`، `instagram_id` و `subject` نیز همراه درخواست ارسال و در نسخه
+محلی افزونه نگهداری می‌شوند. پذیرش مستقیم این سه فیلد به تنظیمات/فیلدهای سفارشی
+نصب Worksuite بستگی دارد.
 
 ### فهرست Leadهای کاربر
 
 ```http
-GET {baseUrl}/leads?mine=1
+GET {baseUrl}/api/v1/lead
 Authorization: Bearer <token>
+X-Requested-With: XMLHttpRequest
 ```
 
-پاسخ فهرست می‌تواند یک آرایه مستقیم، `data` یا `leads` باشد. افزونه نسخه محلی
-Leadهایی را که خودش ثبت کرده نگه می‌دارد؛ بنابراین حتی اگر endpoint فهرست CRM
-پیاده‌سازی نشده باشد، این موارد قابل مشاهده‌اند.
+افزونه فقط Leadهایی را در بخش «سرنخ‌های من» نشان می‌دهد که از خود افزونه ثبت
+شده‌اند. پاسخ فهرست CRM برای به‌روزرسانی همین رکوردهای محلی استفاده می‌شود و
+Leadهای سایر کاربران به این بخش اضافه نمی‌شوند.
 
 ## نکات فنی
 

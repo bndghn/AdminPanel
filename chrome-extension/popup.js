@@ -138,9 +138,9 @@ function updateLoginLabel() {
 function fillSettings() {
   document.querySelector("#base-url").value = state.config?.baseUrl || "";
   document.querySelector("#login-path").value =
-    state.config?.loginPath || "/auth/login";
+    state.config?.loginPath || "/api/v1/auth/login";
   document.querySelector("#leads-path").value =
-    state.config?.leadsPath || "/leads";
+    state.config?.leadsPath || "/api/v1/lead";
   document.querySelector("#login-field").value =
     state.config?.loginField || "email";
 }
@@ -201,7 +201,9 @@ function renderLeads(leads) {
     subject.dir = "rtl";
     subject.textContent = lead.subject || "بدون موضوع";
     const phone = document.createElement("p");
-    phone.textContent = lead.phone || "";
+    phone.textContent = [lead.phone, lead.customer_email]
+      .filter(Boolean)
+      .join(" · ");
 
     item.append(top, subject, phone);
     elements.leadsList.append(item);
