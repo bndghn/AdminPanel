@@ -118,19 +118,32 @@
 
     const form = document.createElement("form");
     const defaults = getInstagramContext();
+    const normalizedPhone = toEnglishDigits(match.phone);
     const fields = [
-      ["phone", "Phone number", toEnglishDigits(match.phone), true],
+      ["phone", "Phone number", normalizedPhone, true],
       ["customer_id", "Customer ID", "", false],
-      ["customer_email", "Customer email (required by CRM)", "", true, "email"],
+      [
+        "customer_email",
+        "Generated CRM email",
+        createLeadEmail(normalizedPhone),
+        true,
+        "email",
+        true,
+      ],
       ["instagram_id", "Instagram ID", defaults.instagramId, false],
       ["customer_name", "Customer name", defaults.customerName, false],
       ["subject", "Request subject", "", true],
       ["city", "Customer city", "", false],
     ];
 
-    for (const [name, label, value, required, type] of fields) {
-      form.append(createField(name, label, value, required, type));
+    for (const [name, label, value, required, type, readOnly] of fields) {
+      form.append(createField(name, label, value, required, type, readOnly));
     }
+    form.elements.phone.addEventListener("input", () => {
+      form.elements.customer_email.value = createLeadEmail(
+        toEnglishDigits(form.elements.phone.value),
+      );
+    });
 
     const status = document.createElement("p");
     status.className = "status";
@@ -170,7 +183,20 @@
     return { instagramId, customerName };
   }
 
-  function createField(name, labelText, value, required, type = "text") {
+  function createLeadEmail(phone) {
+    const digits = phone.replace(/\D/g, "");
+    const normalized = digits.startsWith("00") ? digits.slice(2) : digits;
+    return `${normalized}@instalead.com`;
+  }
+
+  function createField(
+    name,
+    labelText,
+    value,
+    required,
+    type = "text",
+    readOnly = false,
+  ) {
     const label = document.createElement("label");
     label.textContent = labelText;
     const input = document.createElement("input");
@@ -178,6 +204,7 @@
     input.type = type;
     input.value = value;
     input.required = required;
+    input.readOnly = readOnly;
     input.autocomplete = "off";
     label.append(input);
     return label;

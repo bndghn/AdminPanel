@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Instagram CRM Lead",
-  "version": "1.3.0",
+  "version": "1.3.1",
   "description": "Detect Instagram phone numbers and turn them into CRM leads.",
   "permissions": [
     "storage"

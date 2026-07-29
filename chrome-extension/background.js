@@ -404,27 +404,36 @@ async function getConfig() {
 }
 
 function validateLead(lead) {
+  const phone = String(lead?.phone || "").trim();
+  const phoneDigits = normalizePhoneDigits(phone);
   const clean = {
     customer_id: String(lead?.customer_id || "").trim(),
-    customer_email: String(lead?.customer_email || "").trim(),
+    customer_email: `${phoneDigits}@instalead.com`,
     instagram_id: String(lead?.instagram_id || "").trim(),
     customer_name: String(lead?.customer_name || "").trim(),
     subject: String(lead?.subject || "").trim(),
     city: String(lead?.city || "").trim(),
-    phone: String(lead?.phone || "").trim(),
+    phone,
     source: "instagram",
     instagram_url: String(lead?.instagram_url || "").trim(),
   };
 
-  if (!clean.phone) throw new Error("Phone number is required.");
+  if (phoneDigits.length < 10 || phoneDigits.length > 15) {
+    throw new Error("Enter a valid phone number with 10 to 15 digits.");
+  }
   if (!clean.customer_name && !clean.instagram_id) {
     throw new Error("Customer name or Instagram ID is required.");
   }
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(clean.customer_email)) {
-    throw new Error("A valid customer email is required by Worksuite.");
-  }
   if (!clean.subject) throw new Error("Lead subject is required.");
   return clean;
+}
+
+function normalizePhoneDigits(value) {
+  const digits = value
+    .replace(/[۰-۹]/g, (digit) => String("۰۱۲۳۴۵۶۷۸۹".indexOf(digit)))
+    .replace(/[٠-٩]/g, (digit) => String("٠١٢٣٤٥٦٧٨٩".indexOf(digit)))
+    .replace(/\D/g, "");
+  return digits.startsWith("00") ? digits.slice(2) : digits;
 }
 
 function validateHttpUrl(value) {
