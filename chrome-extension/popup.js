@@ -2,6 +2,7 @@ const elements = {
   loginView: document.querySelector("#login-view"),
   appView: document.querySelector("#app-view"),
   loginForm: document.querySelector("#login-form"),
+  manualLeadForm: document.querySelector("#manual-lead-form"),
   settingsForm: document.querySelector("#settings-form"),
   message: document.querySelector("#global-message"),
   accountLabel: document.querySelector("#account-label"),
@@ -30,9 +31,19 @@ async function init() {
 
 function bindEvents() {
   elements.loginForm.addEventListener("submit", handleLogin);
+  elements.manualLeadForm.addEventListener("submit", handleManualLead);
   elements.settingsForm.addEventListener("submit", handleSettings);
   elements.logout.addEventListener("click", handleLogout);
   document.querySelector("#sync-leads").addEventListener("click", syncLeads);
+  document.querySelector("#open-manual-lead").addEventListener("click", () => {
+    openTab("manual");
+    document.querySelector("#manual-phone").focus();
+  });
+  document.querySelector("#manual-phone").addEventListener("input", (event) => {
+    document.querySelector("#manual-email").value = createLeadEmail(
+      event.currentTarget.value,
+    );
+  });
 
   document.querySelectorAll("[data-open-settings]").forEach((button) => {
     button.addEventListener("click", () => {
@@ -98,6 +109,27 @@ async function handleSettings(event) {
     elements.appView.classList.add("hidden");
     elements.loginView.classList.remove("hidden");
   }
+}
+
+async function handleManualLead(event) {
+  event.preventDefault();
+  clearMessage();
+  const submit = event.submitter;
+  submit.disabled = true;
+  const response = await sendMessage({
+    type: "CREATE_LEAD",
+    lead: Object.fromEntries(new FormData(elements.manualLeadForm)),
+  });
+  submit.disabled = false;
+
+  if (!response.ok) {
+    showMessage(response.error, "error");
+    return;
+  }
+
+  elements.manualLeadForm.reset();
+  showMessage("Lead created successfully.", "success");
+  await openTab("leads");
 }
 
 async function handleLogout() {
@@ -227,6 +259,16 @@ function formatDate(value) {
     dateStyle: "short",
     timeStyle: "short",
   }).format(date);
+}
+
+function createLeadEmail(phone) {
+  const digits = String(phone || "")
+    .replace(/[۰-۹]/g, (digit) => String("۰۱۲۳۴۵۶۷۸۹".indexOf(digit)))
+    .replace(/[٠-٩]/g, (digit) => String("٠١٢٣٤٥٦٧٨٩".indexOf(digit)))
+    .replace(/\D/g, "");
+  if (!digits) return "";
+  const normalized = digits.startsWith("00") ? digits.slice(2) : digits;
+  return `${normalized}@instalead.com`;
 }
 
 function showMessage(text, type = "") {

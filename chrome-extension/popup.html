@@ -45,6 +45,7 @@
       <section id="app-view" class="hidden">
         <nav class="tabs" aria-label="Extension sections">
           <button class="active" type="button" data-tab="guide">Guide</button>
+          <button type="button" data-tab="manual">New Lead</button>
           <button type="button" data-tab="leads">My Leads</button>
           <button type="button" data-tab="settings">Settings</button>
         </nav>
@@ -56,6 +57,65 @@
             Open an Instagram page. Phone numbers are highlighted
             automatically; click a number and complete the form.
           </p>
+          <button id="open-manual-lead" class="primary" type="button">
+            Create a lead manually
+          </button>
+        </div>
+
+        <div id="manual-tab" class="tab-panel card hidden">
+          <h2>Create Lead Manually</h2>
+          <form id="manual-lead-form">
+            <label>
+              Phone number
+              <input
+                id="manual-phone"
+                name="phone"
+                type="tel"
+                dir="ltr"
+                required
+              />
+            </label>
+            <label>
+              Generated CRM email
+              <input
+                id="manual-email"
+                name="customer_email"
+                type="email"
+                dir="ltr"
+                readonly
+              />
+            </label>
+            <label>
+              Customer ID
+              <input name="customer_id" />
+            </label>
+            <label>
+              Instagram ID
+              <input name="instagram_id" dir="ltr" />
+            </label>
+            <label>
+              Customer name
+              <input name="customer_name" />
+            </label>
+            <label>
+              Request subject
+              <input name="subject" required />
+            </label>
+            <label>
+              Customer city
+              <input name="city" />
+            </label>
+            <label>
+              Instagram profile URL
+              <input
+                name="instagram_url"
+                type="url"
+                dir="ltr"
+                placeholder="https://instagram.com/username"
+              />
+            </label>
+            <button class="primary" type="submit">Create lead</button>
+          </form>
         </div>
 
         <div id="leads-tab" class="tab-panel hidden">
