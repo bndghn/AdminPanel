@@ -1,0 +1,13 @@
+::highlight(instagram-crm-phone) {
+  color: #3c2aa8;
+  background: #fff1a8;
+  text-decoration: underline;
+  text-decoration-color: #6c5ce7;
+  text-decoration-thickness: 2px;
+  cursor: pointer;
+}
+
+#instagram-crm-lead-root {
+  position: fixed;
+  z-index: 2147483647;
+}

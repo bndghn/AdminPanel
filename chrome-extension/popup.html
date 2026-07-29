@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Instagram CRM Lead</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <main>
+      <header class="brand">
+        <span class="logo">CRM</span>
+        <div>
+          <h1>Instagram Leads</h1>
+          <p id="account-label">Connect to CRM</p>
+        </div>
+      </header>
+
+      <p id="global-message" class="message hidden" role="status"></p>
+
+      <section id="login-view" class="card hidden">
+        <h2>Sign in to CRM</h2>
+        <form id="login-form">
+          <label>
+            <span id="login-label">Email</span>
+            <input id="login" name="login" autocomplete="username" required />
+          </label>
+          <label>
+            Password
+            <input
+              id="password"
+              name="password"
+              type="password"
+              autocomplete="current-password"
+              required
+            />
+          </label>
+          <button class="primary" type="submit">Sign in</button>
+        </form>
+        <button class="link-button" type="button" data-open-settings>
+          API connection settings
+        </button>
+      </section>
+
+      <section id="app-view" class="hidden">
+        <nav class="tabs" aria-label="Extension sections">
+          <button class="active" type="button" data-tab="guide">Guide</button>
+          <button type="button" data-tab="manual">New Lead</button>
+          <button type="button" data-tab="leads">My Leads</button>
+          <button type="button" data-tab="settings">Settings</button>
+        </nav>
+
+        <div id="guide-tab" class="tab-panel card">
+          <div class="guide-icon">☎</div>
+          <h2>Ready to capture leads</h2>
+          <p>
+            Open an Instagram page. Phone numbers are highlighted
+            automatically; click a number and complete the form.
+          </p>
+          <button id="open-manual-lead" class="primary" type="button">
+            Create a lead manually
+          </button>
+        </div>
+
+        <div id="manual-tab" class="tab-panel card hidden">
+          <h2>Create Lead Manually</h2>
+          <form id="manual-lead-form">
+            <label>
+              Phone number
+              <input
+                id="manual-phone"
+                name="phone"
+                type="tel"
+                dir="ltr"
+                required
+              />
+            </label>
+            <label>
+              Generated CRM email
+              <input
+                id="manual-email"
+                name="customer_email"
+                type="email"
+                dir="ltr"
+                readonly
+              />
+            </label>
+            <label>
+              Customer ID
+              <input name="customer_id" />
+            </label>
+            <label>
+              Instagram ID
+              <input name="instagram_id" dir="ltr" />
+            </label>
+            <label>
+              Customer name
+              <input name="customer_name" />
+            </label>
+            <label>
+              Request subject
+              <input name="subject" required />
+            </label>
+            <label>
+              Customer city
+              <input name="city" />
+            </label>
+            <label>
+              Instagram profile URL
+              <input
+                name="instagram_url"
+                type="url"
+                dir="ltr"
+                placeholder="https://instagram.com/username"
+              />
+            </label>
+            <button class="primary" type="submit">Create lead</button>
+          </form>
+        </div>
+
+        <div id="leads-tab" class="tab-panel hidden">
+          <div class="section-heading">
+            <h2>Created Leads</h2>
+            <button id="sync-leads" class="secondary" type="button">Sync</button>
+          </div>
+          <div id="leads-list" class="leads-list"></div>
+        </div>
+
+        <div id="settings-tab" class="tab-panel card hidden">
+          <h2>API Connection</h2>
+          <form id="settings-form">
+            <label>
+              API base URL
+              <input
+                id="base-url"
+                name="baseUrl"
+                type="url"
+                dir="ltr"
+                placeholder="https://crm.example.com/api"
+                required
+              />
+            </label>
+            <label>
+              Login path
+              <input id="login-path" name="loginPath" dir="ltr" required />
+            </label>
+            <label>
+              Token refresh path
+              <input id="refresh-path" name="refreshPath" dir="ltr" required />
+            </label>
+            <label>
+              Leads path
+              <input id="leads-path" name="leadsPath" dir="ltr" required />
+            </label>
+            <label>
+              Login field
+              <select id="login-field" name="loginField">
+                <option value="email">email</option>
+                <option value="username">username</option>
+              </select>
+            </label>
+            <button class="primary" type="submit">Save settings</button>
+          </form>
+          <button id="logout" class="danger hidden" type="button">Sign out</button>
+        </div>
+      </section>
+    </main>
+
+    <script src="popup.js"></script>
+  </body>
+</html>

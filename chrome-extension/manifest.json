@@ -1,0 +1,35 @@
+{
+  "manifest_version": 3,
+  "name": "Instagram CRM Lead",
+  "version": "1.4.0",
+  "description": "Detect Instagram phone numbers and turn them into CRM leads.",
+  "permissions": [
+    "storage"
+  ],
+  "host_permissions": [
+    "https://dalil.net/*",
+    "https://*.dalil.net/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_title": "Instagram CRM Lead",
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.instagram.com/*",
+        "https://instagram.com/*"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "css": [
+        "content.css"
+      ],
+      "run_at": "document_idle"
+    }
+  ]
+}
