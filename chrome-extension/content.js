@@ -98,12 +98,12 @@
     shadow.append(createStyle());
     const panel = document.createElement("section");
     panel.className = "panel";
-    panel.dir = "rtl";
+    panel.dir = "ltr";
     shadow.append(panel);
 
     const header = document.createElement("header");
     const title = document.createElement("strong");
-    title.textContent = "ثبت سرنخ در CRM";
+    title.textContent = "Create CRM Lead";
     const closeButton = button("×", "close", closePopover);
     header.append(title, closeButton);
     panel.append(header);
@@ -111,7 +111,7 @@
     if (!state.ok || !state.authenticated) {
       const message = document.createElement("p");
       message.className = "notice";
-      message.textContent = "ابتدا از پنجره افزونه وارد حساب CRM شوید.";
+      message.textContent = "Sign in to CRM from the extension popup first.";
       panel.append(message);
       return;
     }
@@ -119,13 +119,13 @@
     const form = document.createElement("form");
     const defaults = getInstagramContext();
     const fields = [
-      ["phone", "شماره تلفن", toEnglishDigits(match.phone), true],
-      ["customer_id", "شناسه مشتری", "", false],
-      ["customer_email", "ایمیل مشتری (الزامی CRM)", "", true, "email"],
-      ["instagram_id", "شناسه اینستاگرام", defaults.instagramId, false],
-      ["customer_name", "نام مشتری", defaults.customerName, false],
-      ["subject", "موضوع درخواست", "", true],
-      ["city", "شهر مشتری", "", false],
+      ["phone", "Phone number", toEnglishDigits(match.phone), true],
+      ["customer_id", "Customer ID", "", false],
+      ["customer_email", "Customer email (required by CRM)", "", true, "email"],
+      ["instagram_id", "Instagram ID", defaults.instagramId, false],
+      ["customer_name", "Customer name", defaults.customerName, false],
+      ["subject", "Request subject", "", true],
+      ["city", "Customer city", "", false],
     ];
 
     for (const [name, label, value, required, type] of fields) {
@@ -134,7 +134,7 @@
 
     const status = document.createElement("p");
     status.className = "status";
-    const submit = button("ثبت سرنخ", "submit");
+    const submit = button("Create lead", "submit");
     submit.type = "submit";
     form.append(status, submit);
     panel.append(form);
@@ -143,7 +143,7 @@
       submitEvent.preventDefault();
       submit.disabled = true;
       status.className = "status";
-      status.textContent = "در حال ثبت...";
+      status.textContent = "Creating lead...";
 
       const lead = Object.fromEntries(new FormData(form));
       lead.instagram_url = location.href;
@@ -151,7 +151,7 @@
 
       if (result.ok) {
         status.className = "status success";
-        status.textContent = "سرنخ با موفقیت ثبت شد.";
+        status.textContent = "Lead created successfully.";
         setTimeout(closePopover, 1200);
       } else {
         status.className = "status error";
@@ -200,7 +200,7 @@
   function sendMessage(payload) {
     return chrome.runtime.sendMessage(payload).catch(() => ({
       ok: false,
-      error: "ارتباط با افزونه برقرار نشد.",
+      error: "Could not communicate with the extension.",
     }));
   }
 
@@ -222,7 +222,7 @@
       label { display: block; margin: 8px 0; color: #475467; }
       input {
         display: block; width: 100%; margin-top: 4px; padding: 9px 10px; color: #18212f;
-        background: #fff; border: 1px solid #d0d5dd; border-radius: 8px; font: inherit; direction: rtl;
+        background: #fff; border: 1px solid #d0d5dd; border-radius: 8px; font: inherit; direction: ltr;
       }
       input:focus { border-color: #6c5ce7; outline: 2px solid rgba(108, 92, 231, .15); }
       .submit { width: 100%; padding: 10px; color: #fff; background: #6c5ce7; border-radius: 9px; font-weight: bold; }

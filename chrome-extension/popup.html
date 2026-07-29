@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="fa" dir="rtl">
+<html lang="en" dir="ltr">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -11,22 +11,22 @@
       <header class="brand">
         <span class="logo">CRM</span>
         <div>
-          <h1>سرنخ اینستاگرام</h1>
-          <p id="account-label">اتصال به CRM</p>
+          <h1>Instagram Leads</h1>
+          <p id="account-label">Connect to CRM</p>
         </div>
       </header>
 
       <p id="global-message" class="message hidden" role="status"></p>
 
       <section id="login-view" class="card hidden">
-        <h2>ورود به CRM</h2>
+        <h2>Sign in to CRM</h2>
         <form id="login-form">
           <label>
-            <span id="login-label">ایمیل</span>
+            <span id="login-label">Email</span>
             <input id="login" name="login" autocomplete="username" required />
           </label>
           <label>
-            رمز عبور
+            Password
             <input
               id="password"
               name="password"
@@ -35,42 +35,42 @@
               required
             />
           </label>
-          <button class="primary" type="submit">ورود</button>
+          <button class="primary" type="submit">Sign in</button>
         </form>
         <button class="link-button" type="button" data-open-settings>
-          تنظیم اتصال API
+          API connection settings
         </button>
       </section>
 
       <section id="app-view" class="hidden">
-        <nav class="tabs" aria-label="بخش‌های افزونه">
-          <button class="active" type="button" data-tab="guide">راهنما</button>
-          <button type="button" data-tab="leads">سرنخ‌های من</button>
-          <button type="button" data-tab="settings">تنظیمات</button>
+        <nav class="tabs" aria-label="Extension sections">
+          <button class="active" type="button" data-tab="guide">Guide</button>
+          <button type="button" data-tab="leads">My Leads</button>
+          <button type="button" data-tab="settings">Settings</button>
         </nav>
 
         <div id="guide-tab" class="tab-panel card">
           <div class="guide-icon">☎</div>
-          <h2>آماده ثبت سرنخ</h2>
+          <h2>Ready to capture leads</h2>
           <p>
-            صفحه اینستاگرام را باز کنید. شماره‌های تلفن به‌صورت خودکار
-            هایلایت می‌شوند؛ روی شماره کلیک کنید و فرم را تکمیل کنید.
+            Open an Instagram page. Phone numbers are highlighted
+            automatically; click a number and complete the form.
           </p>
         </div>
 
         <div id="leads-tab" class="tab-panel hidden">
           <div class="section-heading">
-            <h2>سرنخ‌های ثبت‌شده</h2>
-            <button id="sync-leads" class="secondary" type="button">همگام‌سازی</button>
+            <h2>Created Leads</h2>
+            <button id="sync-leads" class="secondary" type="button">Sync</button>
           </div>
           <div id="leads-list" class="leads-list"></div>
         </div>
 
         <div id="settings-tab" class="tab-panel card hidden">
-          <h2>تنظیم اتصال API</h2>
+          <h2>API Connection</h2>
           <form id="settings-form">
             <label>
-              آدرس پایه API
+              API base URL
               <input
                 id="base-url"
                 name="baseUrl"
@@ -81,23 +81,23 @@
               />
             </label>
             <label>
-              مسیر ورود
+              Login path
               <input id="login-path" name="loginPath" dir="ltr" required />
             </label>
             <label>
-              مسیر سرنخ‌ها
+              Leads path
               <input id="leads-path" name="leadsPath" dir="ltr" required />
             </label>
             <label>
-              فیلد ورود
+              Login field
               <select id="login-field" name="loginField">
                 <option value="email">email</option>
                 <option value="username">username</option>
               </select>
             </label>
-            <button class="primary" type="submit">ذخیره تنظیمات</button>
+            <button class="primary" type="submit">Save settings</button>
           </form>
-          <button id="logout" class="danger hidden" type="button">خروج از حساب</button>
+          <button id="logout" class="danger hidden" type="button">Sign out</button>
         </div>
       </section>
     </main>

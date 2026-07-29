@@ -72,7 +72,7 @@ async function handleLogin(event) {
   state.authenticated = true;
   state.profile = response.profile;
   renderAuthState();
-  showMessage("ورود با موفقیت انجام شد.", "success");
+  showMessage("Signed in successfully.", "success");
 }
 
 async function handleSettings(event) {
@@ -93,7 +93,7 @@ async function handleSettings(event) {
 
   state.config = response.config;
   updateLoginLabel();
-  showMessage("تنظیمات API ذخیره شد.", "success");
+  showMessage("API settings saved.", "success");
   if (!state.authenticated) {
     elements.appView.classList.add("hidden");
     elements.loginView.classList.remove("hidden");
@@ -122,17 +122,17 @@ function renderAuthState() {
       state.profile?.name ||
       state.profile?.full_name ||
       state.profile?.email ||
-      "متصل به CRM";
+      "Connected to CRM";
     elements.accountLabel.textContent = name;
     openTab("guide");
   } else {
-    elements.accountLabel.textContent = "اتصال به CRM";
+    elements.accountLabel.textContent = "Connect to CRM";
   }
 }
 
 function updateLoginLabel() {
   elements.loginLabel.textContent =
-    state.config?.loginField === "username" ? "نام کاربری" : "ایمیل";
+    state.config?.loginField === "username" ? "Username" : "Email";
 }
 
 function fillSettings() {
@@ -157,7 +157,7 @@ async function openTab(tabName) {
 }
 
 async function loadLocalLeads() {
-  elements.leadsList.replaceChildren(createEmpty("در حال دریافت..."));
+  elements.leadsList.replaceChildren(createEmpty("Loading..."));
   const response = await sendMessage({ type: "GET_LOCAL_LEADS" });
   if (!response.ok) {
     elements.leadsList.replaceChildren(createEmpty(response.error));
@@ -176,13 +176,13 @@ async function syncLeads(event) {
     return;
   }
   renderLeads(response.leads);
-  showMessage("فهرست سرنخ‌ها همگام شد.", "success");
+  showMessage("Leads synced successfully.", "success");
 }
 
 function renderLeads(leads) {
   elements.leadsList.replaceChildren();
   if (!leads?.length) {
-    elements.leadsList.append(createEmpty("هنوز سرنخی ثبت نشده است."));
+    elements.leadsList.append(createEmpty("No leads have been created yet."));
     return;
   }
 
@@ -193,14 +193,14 @@ function renderLeads(leads) {
     const top = document.createElement("div");
     top.className = "lead-top";
     const title = document.createElement("strong");
-    title.textContent = lead.customer_name || lead.instagram_id || "بدون نام";
+    title.textContent = lead.customer_name || lead.instagram_id || "Unnamed";
     const date = document.createElement("time");
     date.textContent = formatDate(lead.created_at);
     top.append(title, date);
 
     const subject = document.createElement("p");
-    subject.dir = "rtl";
-    subject.textContent = lead.subject || "بدون موضوع";
+    subject.dir = "ltr";
+    subject.textContent = lead.subject || "No subject";
     const phone = document.createElement("p");
     phone.textContent = [lead.phone, lead.customer_email]
       .filter(Boolean)
@@ -221,7 +221,7 @@ function createEmpty(text) {
 function formatDate(value) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "";
-  return new Intl.DateTimeFormat("fa-IR", {
+  return new Intl.DateTimeFormat("en-US", {
     dateStyle: "short",
     timeStyle: "short",
   }).format(date);
@@ -240,7 +240,7 @@ function clearMessage() {
 function sendMessage(payload) {
   return chrome.runtime.sendMessage(payload).catch(() => ({
     ok: false,
-    error: "ارتباط با افزونه برقرار نشد.",
+    error: "Could not communicate with the extension.",
   }));
 }
 

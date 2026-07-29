@@ -54,7 +54,7 @@ async function handleMessage(message) {
     case "SYNC_LEADS":
       return syncLeads();
     default:
-      throw new Error("درخواست ناشناخته است.");
+      throw new Error("Unknown request.");
   }
 }
 
@@ -91,7 +91,7 @@ async function login(credentials) {
   const loginValue = String(credentials?.login || "").trim();
   const password = String(credentials?.password || "");
   if (!loginValue || !password) {
-    throw new Error("نام کاربری و رمز عبور الزامی است.");
+    throw new Error("Email and password are required.");
   }
 
   const response = await apiRequest(config.loginPath, {
@@ -112,7 +112,7 @@ async function login(credentials) {
     response?.data?.token;
 
   if (!token) {
-    throw new Error("توکن ورود در پاسخ API پیدا نشد.");
+    throw new Error("The API response did not include an access token.");
   }
 
   const profile = response?.user || response?.data?.user || {
@@ -194,7 +194,7 @@ async function syncLeads() {
     : response?.data || response?.leads;
 
   if (!Array.isArray(remoteLeads)) {
-    throw new Error("ساختار فهرست سرنخ‌ها در پاسخ API معتبر نیست.");
+    throw new Error("The API returned an invalid leads list.");
   }
 
   const { leads: localLeads } = await getLocalLeads();
@@ -239,7 +239,7 @@ async function apiRequest(path, options = {}) {
 
   if (!options.skipAuth) {
     const { crmToken } = await chrome.storage.session.get("crmToken");
-    if (!crmToken) throw new Error("ابتدا وارد حساب CRM شوید.");
+    if (!crmToken) throw new Error("Sign in to CRM first.");
     headers.Authorization = `Bearer ${crmToken}`;
   }
 
@@ -255,7 +255,7 @@ async function apiRequest(path, options = {}) {
         : undefined,
     });
   } catch {
-    throw new Error("ارتباط با سرور CRM برقرار نشد.");
+    throw new Error("Could not connect to the CRM server.");
   }
 
   const text = await response.text();
@@ -272,7 +272,7 @@ async function apiRequest(path, options = {}) {
     const message =
       data?.message ||
       data?.error ||
-      `خطای API با کد ${response.status}`;
+      `API request failed with status ${response.status}`;
     throw new Error(message);
   }
 
@@ -298,14 +298,14 @@ function validateLead(lead) {
     instagram_url: String(lead?.instagram_url || "").trim(),
   };
 
-  if (!clean.phone) throw new Error("شماره تلفن الزامی است.");
+  if (!clean.phone) throw new Error("Phone number is required.");
   if (!clean.customer_name && !clean.instagram_id) {
-    throw new Error("نام مشتری یا شناسه اینستاگرام الزامی است.");
+    throw new Error("Customer name or Instagram ID is required.");
   }
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(clean.customer_email)) {
-    throw new Error("ایمیل معتبر مشتری برای ثبت Lead در Worksuite الزامی است.");
+    throw new Error("A valid customer email is required by Worksuite.");
   }
-  if (!clean.subject) throw new Error("موضوع سرنخ الزامی است.");
+  if (!clean.subject) throw new Error("Lead subject is required.");
   return clean;
 }
 
@@ -314,10 +314,10 @@ function validateHttpUrl(value) {
   try {
     url = new URL(value);
   } catch {
-    throw new Error("آدرس پایه API معتبر نیست.");
+    throw new Error("The API base URL is invalid.");
   }
   if (!["https:", "http:"].includes(url.protocol)) {
-    throw new Error("آدرس API باید با http یا https شروع شود.");
+    throw new Error("The API URL must start with http or https.");
   }
 }
 
@@ -327,5 +327,5 @@ function normalizePath(value, fallback) {
 }
 
 function normalizeError(error) {
-  return error instanceof Error ? error.message : "خطای پیش‌بینی‌نشده رخ داد.";
+  return error instanceof Error ? error.message : "An unexpected error occurred.";
 }

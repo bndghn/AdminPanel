@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Instagram CRM Lead",
-  "version": "1.1.1",
-  "description": "شماره‌های تماس اینستاگرام را شناسایی و به سرنخ CRM تبدیل می‌کند.",
+  "version": "1.2.0",
+  "description": "Detect Instagram phone numbers and turn them into CRM leads.",
   "permissions": [
     "storage"
   ],
