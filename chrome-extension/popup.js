@@ -140,6 +140,8 @@ function fillSettings() {
     state.config?.baseUrl || "https://dalil.net";
   document.querySelector("#login-path").value =
     state.config?.loginPath || "/api/v1/auth/login";
+  document.querySelector("#refresh-path").value =
+    state.config?.refreshPath || "/api/v1/auth/refresh";
   document.querySelector("#leads-path").value =
     state.config?.leadsPath || "/api/v1/lead";
   document.querySelector("#login-field").value =

@@ -42,6 +42,20 @@ email=user%40example.com&password=...
 توکن فقط در `chrome.storage.session` نگهداری می‌شود و در درخواست‌های بعدی به
 شکل `Authorization: Bearer <token>` ارسال می‌شود.
 
+### تمدید توکن
+
+```http
+GET {baseUrl}/api/v1/auth/refresh
+Authorization: Bearer <token>
+X-Requested-With: XMLHttpRequest
+```
+
+این endpoint برای تمدید JWT است، نه بررسی سلامت API. افزونه زمان انقضای توکن
+را از پاسخ ورود یا payload خود JWT محاسبه می‌کند و یک دقیقه پیش از انقضا آن را
+تمدید می‌کند. اگر یک درخواست پاسخ `401` بگیرد، افزونه یک بار توکن را تمدید و
+همان درخواست را تکرار می‌کند. درخواست‌های هم‌زمان نیز فقط یک refresh مشترک
+ایجاد می‌کنند.
+
 ### ثبت Lead
 
 ```http

@@ -1,9 +1,13 @@
 const DEFAULT_CONFIG = {
   baseUrl: "https://dalil.net",
   loginPath: "/api/v1/auth/login",
+  refreshPath: "/api/v1/auth/refresh",
   leadsPath: "/api/v1/lead",
   loginField: "email",
 };
+
+const TOKEN_REFRESH_WINDOW_MS = 60_000;
+let refreshPromise;
 
 const STORAGE_KEYS = {
   config: "crmConfig",
@@ -22,6 +26,7 @@ chrome.runtime.onInstalled.addListener(async () => {
       !current.loginPath || current.loginPath === "/auth/login"
         ? DEFAULT_CONFIG.loginPath
         : current.loginPath,
+    refreshPath: current.refreshPath || DEFAULT_CONFIG.refreshPath,
     leadsPath:
       !current.leadsPath || current.leadsPath === "/leads"
         ? DEFAULT_CONFIG.leadsPath
@@ -75,6 +80,7 @@ async function saveConfig(config) {
   const normalized = {
     baseUrl: String(config?.baseUrl || "").trim().replace(/\/+$/, ""),
     loginPath: normalizePath(config?.loginPath, DEFAULT_CONFIG.loginPath),
+    refreshPath: normalizePath(config?.refreshPath, DEFAULT_CONFIG.refreshPath),
     leadsPath: normalizePath(config?.leadsPath, DEFAULT_CONFIG.leadsPath),
     loginField: config?.loginField === "username" ? "username" : "email",
   };
@@ -120,7 +126,10 @@ async function login(credentials) {
   };
 
   await Promise.all([
-    chrome.storage.session.set({ crmToken: token }),
+    chrome.storage.session.set({
+      crmToken: token,
+      crmTokenExpiresAt: getTokenExpiry(response, token),
+    }),
     chrome.storage.local.set({ [STORAGE_KEYS.profile]: profile }),
   ]);
 
@@ -135,7 +144,7 @@ async function logout() {
     // Local logout must still work if the token is expired or the server is unavailable.
   }
   await Promise.all([
-    chrome.storage.session.remove("crmToken"),
+    chrome.storage.session.remove(["crmToken", "crmTokenExpiresAt"]),
     chrome.storage.local.remove(STORAGE_KEYS.profile),
   ]);
   return {};
@@ -238,14 +247,46 @@ async function apiRequest(path, options = {}) {
   }
 
   if (!options.skipAuth) {
-    const { crmToken } = await chrome.storage.session.get("crmToken");
+    let { crmToken, crmTokenExpiresAt } = await chrome.storage.session.get([
+      "crmToken",
+      "crmTokenExpiresAt",
+    ]);
     if (!crmToken) throw new Error("Sign in to CRM first.");
+    if (
+      !options.skipRefresh &&
+      shouldRefreshToken(crmToken, crmTokenExpiresAt)
+    ) {
+      crmToken = await refreshAccessToken(config);
+    }
     headers.Authorization = `Bearer ${crmToken}`;
   }
 
-  let response;
+  let response = await performRequest(config, path, options, headers);
+  if (
+    response.status === 401 &&
+    !options.skipAuth &&
+    !options.skipRefresh
+  ) {
+    const refreshedToken = await refreshAccessToken(config);
+    headers.Authorization = `Bearer ${refreshedToken}`;
+    response = await performRequest(config, path, options, headers);
+  }
+
+  const data = await parseResponse(response);
+  if (!response.ok) {
+    const message =
+      data?.message ||
+      data?.error ||
+      `API request failed with status ${response.status}`;
+    throw new Error(message);
+  }
+
+  return data;
+}
+
+async function performRequest(config, path, options, headers) {
   try {
-    response = await fetch(`${config.baseUrl}${path}`, {
+    return await fetch(`${config.baseUrl}${path}`, {
       method: options.method || "GET",
       headers,
       body: options.body
@@ -257,26 +298,103 @@ async function apiRequest(path, options = {}) {
   } catch {
     throw new Error("Could not connect to the CRM server.");
   }
+}
 
+async function parseResponse(response) {
   const text = await response.text();
-  let data = {};
+  if (!text) return {};
   if (text) {
     try {
-      data = JSON.parse(text);
+      return JSON.parse(text);
     } catch {
-      data = { message: text };
+      return { message: text };
     }
   }
+  return {};
+}
 
-  if (!response.ok) {
-    const message =
-      data?.message ||
-      data?.error ||
-      `API request failed with status ${response.status}`;
-    throw new Error(message);
+function refreshAccessToken(config) {
+  if (refreshPromise) return refreshPromise;
+
+  refreshPromise = (async () => {
+    const { crmToken } = await chrome.storage.session.get("crmToken");
+    if (!crmToken) throw new Error("Sign in to CRM first.");
+
+    let response;
+    try {
+      response = await fetch(`${config.baseUrl}${config.refreshPath}`, {
+        method: "GET",
+        headers: {
+          Accept: "application/json",
+          "X-Requested-With": "XMLHttpRequest",
+          Authorization: `Bearer ${crmToken}`,
+        },
+      });
+    } catch {
+      throw new Error("Could not refresh the CRM session.");
+    }
+
+    const data = await parseResponse(response);
+    const token =
+      data?.access_token ||
+      data?.accessToken ||
+      data?.token ||
+      data?.data?.access_token ||
+      data?.data?.token;
+
+    if (!response.ok || !token) {
+      if ([401, 403].includes(response.status)) {
+        await chrome.storage.session.remove([
+          "crmToken",
+          "crmTokenExpiresAt",
+        ]);
+      }
+      throw new Error(
+        data?.message || data?.error || "Your CRM session has expired.",
+      );
+    }
+
+    await chrome.storage.session.set({
+      crmToken: token,
+      crmTokenExpiresAt: getTokenExpiry(data, token),
+    });
+    return token;
+  })().finally(() => {
+    refreshPromise = null;
+  });
+
+  return refreshPromise;
+}
+
+function shouldRefreshToken(token, storedExpiry) {
+  const expiry = Number(storedExpiry) || decodeJwtExpiry(token);
+  return !expiry || expiry - Date.now() <= TOKEN_REFRESH_WINDOW_MS;
+}
+
+function getTokenExpiry(response, token) {
+  const expires = response?.expires || response?.data?.expires;
+  const parsedExpires = expires ? new Date(expires).getTime() : 0;
+  if (Number.isFinite(parsedExpires) && parsedExpires > 0) {
+    return parsedExpires;
   }
 
-  return data;
+  const expiresIn = Number(
+    response?.expires_in || response?.data?.expires_in || 0,
+  );
+  if (expiresIn > 0) return Date.now() + expiresIn * 1000;
+  return decodeJwtExpiry(token);
+}
+
+function decodeJwtExpiry(token) {
+  try {
+    const payload = token.split(".")[1];
+    if (!payload) return 0;
+    const normalized = payload.replace(/-/g, "+").replace(/_/g, "/");
+    const decoded = JSON.parse(atob(normalized));
+    return Number(decoded.exp) * 1000 || 0;
+  } catch {
+    return 0;
+  }
 }
 
 async function getConfig() {
