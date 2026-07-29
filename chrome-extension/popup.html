@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Instagram CRM Lead</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <main>
+      <header class="brand">
+        <span class="logo">CRM</span>
+        <div>
+          <h1>سرنخ اینستاگرام</h1>
+          <p id="account-label">اتصال به CRM</p>
+        </div>
+      </header>
+
+      <p id="global-message" class="message hidden" role="status"></p>
+
+      <section id="login-view" class="card hidden">
+        <h2>ورود به CRM</h2>
+        <form id="login-form">
+          <label>
+            <span id="login-label">ایمیل</span>
+            <input id="login" name="login" autocomplete="username" required />
+          </label>
+          <label>
+            رمز عبور
+            <input
+              id="password"
+              name="password"
+              type="password"
+              autocomplete="current-password"
+              required
+            />
+          </label>
+          <button class="primary" type="submit">ورود</button>
+        </form>
+        <button class="link-button" type="button" data-open-settings>
+          تنظیم اتصال API
+        </button>
+      </section>
+
+      <section id="app-view" class="hidden">
+        <nav class="tabs" aria-label="بخش‌های افزونه">
+          <button class="active" type="button" data-tab="guide">راهنما</button>
+          <button type="button" data-tab="leads">سرنخ‌های من</button>
+          <button type="button" data-tab="settings">تنظیمات</button>
+        </nav>
+
+        <div id="guide-tab" class="tab-panel card">
+          <div class="guide-icon">☎</div>
+          <h2>آماده ثبت سرنخ</h2>
+          <p>
+            صفحه اینستاگرام را باز کنید. شماره‌های تلفن به‌صورت خودکار
+            هایلایت می‌شوند؛ روی شماره کلیک کنید و فرم را تکمیل کنید.
+          </p>
+        </div>
+
+        <div id="leads-tab" class="tab-panel hidden">
+          <div class="section-heading">
+            <h2>سرنخ‌های ثبت‌شده</h2>
+            <button id="sync-leads" class="secondary" type="button">همگام‌سازی</button>
+          </div>
+          <div id="leads-list" class="leads-list"></div>
+        </div>
+
+        <div id="settings-tab" class="tab-panel card hidden">
+          <h2>تنظیم اتصال API</h2>
+          <form id="settings-form">
+            <label>
+              آدرس پایه API
+              <input
+                id="base-url"
+                name="baseUrl"
+                type="url"
+                dir="ltr"
+                placeholder="https://crm.example.com/api"
+                required
+              />
+            </label>
+            <label>
+              مسیر ورود
+              <input id="login-path" name="loginPath" dir="ltr" required />
+            </label>
+            <label>
+              مسیر سرنخ‌ها
+              <input id="leads-path" name="leadsPath" dir="ltr" required />
+            </label>
+            <label>
+              فیلد ورود
+              <select id="login-field" name="loginField">
+                <option value="email">email</option>
+                <option value="username">username</option>
+              </select>
+            </label>
+            <button class="primary" type="submit">ذخیره تنظیمات</button>
+          </form>
+          <button id="logout" class="danger hidden" type="button">خروج از حساب</button>
+        </div>
+      </section>
+    </main>
+
+    <script src="popup.js"></script>
+  </body>
+</html>
